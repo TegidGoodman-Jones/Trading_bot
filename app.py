@@ -12,7 +12,7 @@ money_total = 1000
 bought = False
 sold = False
 run = True
-ts = TimeSeries(key='JY8G0X0SXPCGYXWU', output_format='pandas')
+ts = TimeSeries(key='YOUR API KEY HERE', output_format='pandas')
 
 
 
