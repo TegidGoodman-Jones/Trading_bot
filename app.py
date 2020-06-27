@@ -4,15 +4,34 @@ from datetime import datetime
 import pytz
 import time
 
+with open('previous.txt', 'r') as file:
+	file_text = str(file.read())
+	text_list = file_text.split(',')
+
 
 # define variables
 
 init_money_total = 1000
-money_total = 1000
-bought = False
-sold = False
+
 run = True
+
+# GETTING RESULTS FROM PREVIOUS RUN
+
+money_total = float(text_list[0])
+
+#  CONVERTING STR TO BOOL
+
+bought = 'True' in text_list[1]
+
+sold = 'True' in text_list[2]
+
+printed_buy_msg = 'True' in text_list[3]
+
+# DEFINE CONST
+
 ts = TimeSeries(key='YOUR API KEY HERE', output_format='pandas')
+
+eastern = pytz.timezone('US/Eastern')
 
 
 
@@ -20,7 +39,7 @@ ts = TimeSeries(key='YOUR API KEY HERE', output_format='pandas')
 # GET US TIME
 
 def get_current_us_time():
-	eastern = pytz.timezone('US/Eastern')
+	
 	us_time = datetime.now(eastern)
 	current_time = us_time.strftime('%H:%M')
 	return current_time
@@ -101,8 +120,6 @@ def trade(init_price_usd, high_avarage, low_average):
 		
 		
 		bought = True
-
-		printed_buy_msg = False
 		
 		return money_total
 
@@ -147,6 +164,7 @@ def get_result(current_time):
 		n_buy = 0
 		profit = tots - init_money_total
 		profit_pc = (profit/init_money_total)*100
+		date = datetime.now(eastern).strftime('%d:%m:%y  %H:%M')
 		result = '\n' + str(date) + ',' + str(init_price_usd) + ',' + str(tots) + ',' + str(profit_pc) + '%'
 		with open("result.csv", "a") as file:
 			file.write(result)
@@ -155,6 +173,12 @@ def get_result(current_time):
 
 	elif bought is True and printed_buy_msg is False:
 		print('Bought {} shares at {}, total money = {}\n'.format(n_buy, current_time, tots))
+		date = datetime.now(eastern).strftime('%d:%m:%y  %H:%M')
+		result = '\n' + 'Bought,' + str(date) + ',' + str(init_price_usd) + ',' + str(tots)
+
+		with open("result.csv", "a") as file:
+			file.write(result)
+			file.close()
 		printed_buy_msg = True
 
 	elif bought is True and printed_buy_msg is True:
@@ -171,11 +195,21 @@ while run == True:
 
 	get_result(current_time)
 
-	if current_time == '16:00':
+	hour = datetime.now(eastern).strftime('%H')
+	
+	if int(hour) >= 16:
 		run = False
-		print('End at {}: Done\n{}'.format(current_time, money_total))
+		with open('previous.txt', 'w') as file:
+			variables = str(money_total) + ',' + str(bought) + ',' + str(sold) + ',' + str(printed_buy_msg)
+			file.write(variables)
+			file.close()
 
-	time.sleep(300)  # change to 300
+		print('End at {}: Done\n{}'.format(current_time, money_total))
+	
+	if run is True:
+		time.sleep(300)  # change to 300
+	else:
+		break
 
 
 	
